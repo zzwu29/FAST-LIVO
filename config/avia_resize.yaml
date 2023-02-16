@@ -20,6 +20,8 @@ cam_fy: 453.254913
 cam_cx: 318.908851
 cam_cy: 234.238189
 
+map_file_path: "/home/zzwu/fastLIVO_workspace/src/FAST-LIVO/Pcd"
+
 common:
     lid_topic:  "/livox/lidar"
     imu_topic:  "/livox/imu"

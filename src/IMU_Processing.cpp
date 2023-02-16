@@ -805,10 +805,16 @@ void ImuProcess::UndistortPcl(LidarMeasureGroup &lidar_meas, StatesGroup &state_
        * So if we want to compensate a point at timestamp-i to the frame-e
        * P_compensate = R_imu_e ^ T * (R_i * P_i + T_ei) where T_ei is represented in global frame */
       M3D R_i(R_imu * Exp(angvel_avr, dt));
-      V3D T_ei(pos_imu + vel_imu * dt + 0.5 * acc_imu * dt * dt + R_i * Lid_offset_to_IMU - pos_liD_e);
 
+      /* maybe not accurate!
+      V3D T_ei(pos_imu + vel_imu * dt + 0.5 * acc_imu * dt * dt + R_i * Lid_offset_to_IMU - pos_liD_e);
       V3D P_i(it_pcl->x, it_pcl->y, it_pcl->z);
       V3D P_compensate = state_inout.rot_end.transpose() * (R_i * P_i + T_ei);
+      */
+      V3D T_ei(pos_imu + vel_imu * dt + 0.5 * acc_imu * dt * dt + R_i * Lid_offset_to_IMU - pos_liD_e);
+      V3D P_i(it_pcl->x, it_pcl->y, it_pcl->z);
+      //V3D P_compensate = state_inout.rot_end.transpose() * (R_i * P_i + T_ei);
+      V3D P_compensate = Lid_rot_to_IMU.transpose() * state_inout.rot_end.transpose() * (R_i * Lid_rot_to_IMU * P_i + T_ei);
 
       /// save Undistorted points and their rotation
       it_pcl->x = P_compensate(0);

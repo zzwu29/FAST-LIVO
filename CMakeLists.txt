@@ -69,6 +69,13 @@ FIND_PACKAGE(Boost REQUIRED COMPONENTS thread)
 set(Sophus_LIBRARIES libSophus.so)
 
 message(Eigen: ${EIGEN3_INCLUDE_DIR})
+message(STATUS "    include path: ${OpenCV_INCLUDE_DIRS}")
+message(STATUS "    LIBRARIES: ${OpenCV_LIBRARIES}")
+message(STATUS "    catkin_LIBRARIES: ${catkin_LIBRARIES}")
+
+# file(GLOB_RECURSE OLD_OPENCV "/usr/lib/x86_64-linux-gnu/libopencv*")
+# file(GLOB_RECURSE OLD_OPENCV "/usr/local/lib/libopencv*")
+# list(REMOVE_ITEM catkin_LIBRARIES ${OLD_OPENCV})
 
 include_directories(
 	${catkin_INCLUDE_DIRS} 

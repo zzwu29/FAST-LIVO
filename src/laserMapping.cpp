@@ -66,6 +66,8 @@
 #include <vikit/camera_loader.h>
 #include"lidar_selection.h"
 
+#define USE_ikdtree
+
 #ifdef USE_ikdtree
     #ifdef USE_ikdforest
     #include <ikd-Forest/ikd_Forest.h>
@@ -752,7 +754,7 @@ void publish_frame_world_rgb(const ros::Publisher & pubLaserCloudFullRes, lidar_
         sensor_msgs::PointCloud2 laserCloudmsg;
         if (img_en)
         {
-            // cout<<"RGB pointcloud size: "<<laserCloudWorldRGB->size()<<endl;
+            cout<<"RGB pointcloud size: "<<laserCloudWorldRGB->size()<<endl;
             pcl::toROSMsg(*laserCloudWorldRGB, laserCloudmsg);
         }
         else
@@ -1130,6 +1132,7 @@ int main(int argc, char** argv)
     ros::NodeHandle nh;
     image_transport::ImageTransport it(nh);
     readParameters(nh);
+    cout<<"map_file_path ---> "<<map_file_path<<endl;
     cout<<"debug:"<<debug<<" MIN_IMG_COUNT: "<<MIN_IMG_COUNT<<endl;
     pcl_wait_pub->clear();
     // pcl_visual_wait_pub->clear();
@@ -1272,6 +1275,7 @@ int main(int argc, char** argv)
         if (flg_reset)
         {
             ROS_WARN("reset when rosbag play back");
+            cout<<"[ INFO ]: Reset ImuProcess !!"<<endl;
             p_imu->Reset();
             flg_reset = false;
             continue;
@@ -1304,6 +1308,7 @@ int main(int argc, char** argv)
                 first_lidar_time = LidarMeasures.lidar_beg_time;
                 p_imu->first_lidar_time = first_lidar_time;
                 LidarMeasures.measures.clear();
+                cout<<fixed<<setprecision(4)<<"first_lidar_time: "<<first_lidar_time<<", ";
                 cout<<"FAST-LIO not ready"<<endl;
                 continue;
             }
@@ -1454,7 +1459,7 @@ int main(int argc, char** argv)
         }
 
     #ifdef USE_ikdtree
-        if(0)
+        if(1)
         {
             PointVector ().swap(ikdtree.PCL_Storage);
             ikdtree.flatten(ikdtree.Root_Node, ikdtree.PCL_Storage, NOT_RECORD);
@@ -1804,21 +1809,22 @@ int main(int argc, char** argv)
         // dump_lio_state_to_log(fp);
     }
     //--------------------------save map---------------
-    // string surf_filename(map_file_path + "/surf.pcd");
-    // string corner_filename(map_file_path + "/corner.pcd");
-    // string all_points_filename(map_file_path + "/all_points.pcd");
+    string surf_filename(map_file_path + "/surf.pcd");
+    string corner_filename(map_file_path + "/corner.pcd");
+    string all_points_filename(map_file_path + "/all_points.pcd");
 
-    // PointCloudXYZI surf_points, corner_points;
-    // surf_points = *featsFromMap;
-    // fout_out.close();
-    // fout_pre.close();
-    // if (surf_points.size() > 0 && corner_points.size() > 0) 
-    // {
-    // pcl::PCDWriter pcd_writer;
-    // cout << "saving...";
-    // pcd_writer.writeBinary(surf_filename, surf_points);
-    // pcd_writer.writeBinary(corner_filename, corner_points);
-    // }
+    PointCloudXYZI surf_points, corner_points;
+    surf_points = *featsFromMap;
+    fout_out.close();
+    fout_pre.close();
+    //if (surf_points.size() > 0 || corner_points.size() > 0) 
+    if (surf_points.size() > 0)
+    {
+    pcl::PCDWriter pcd_writer;
+    cout << "saving...";
+    pcd_writer.writeBinary(surf_filename, surf_points);
+    //pcd_writer.writeBinary(corner_filename, corner_points);
+    }
 
     #ifndef DEPLOY
     vector<double> t, s_vec, s_vec2, s_vec3, s_vec4, s_vec5, s_vec6, s_vec7;    

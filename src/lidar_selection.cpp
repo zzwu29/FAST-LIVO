@@ -401,7 +401,7 @@ void LidarSelector::addFromSparseMap(cv::Mat img, PointCloudXYZI::Ptr pg)
             sub_feat_map[position] = 1.0;
         }
                     
-        V3D pt_c(new_frame_->w2f(pt_w));
+        V3D pt_c(new_frame_->w2f(pt_w)); // world to frame (camera)
 
         V2D px;
         if(pt_c[2] > 0)
@@ -444,10 +444,10 @@ void LidarSelector::addFromSparseMap(cv::Mat img, PointCloudXYZI::Ptr pg)
             {
                 PointPtr pt = voxel_points[i];
                 if(pt==nullptr) continue;
-                V3D pt_cam(new_frame_->w2f(pt->pos_));
+                V3D pt_cam(new_frame_->w2f(pt->pos_)); // world to frame (camera)
                 if(pt_cam[2]<0) continue;
 
-                V2D pc(new_frame_->w2c(pt->pos_));
+                V2D pc(new_frame_->w2c(pt->pos_)); // world to frame (pixel), mind here undistort visual feature
 
                 FeaturePtr ref_ftr;
       
@@ -949,7 +949,8 @@ void LidarSelector::addObservation(cv::Mat img)
             SE3 delta_pose = pose_ref * pose_cur.inverse();
             double delta_p = delta_pose.translation().norm();
             double delta_theta = (delta_pose.rotation_matrix().trace() > 3.0 - 1e-6) ? 0.0 : std::acos(0.5 * (delta_pose.rotation_matrix().trace() - 1));            
-            if(delta_p > 0.5 || delta_theta > 10) add_flag = true;
+            //if(delta_p > 0.5 || delta_theta > 10) add_flag = true;
+            if(delta_p > 0.5 || delta_theta > 0.3) add_flag = true;
 
             // Step 3: pixel distance
             Vector2d last_px = last_feature->px;
@@ -1084,7 +1085,7 @@ void LidarSelector::detect(cv::Mat img, PointCloudXYZI::Ptr pg)
     ave_total = ave_total * (frame_cont - 1) / frame_cont + (t2 - t1) / frame_cont;
 
     printf("[ VIO ]: time: addFromSparseMap: %0.6f addSparseMap: %0.6f ComputeJ: %0.6f addObservation: %0.6f total time: %0.6f ave_total: %0.6f.\n"
-    , t3-t1, t4-t3, t5-t4, t2-t5, t2-t1);
+    , t3-t1, t4-t3, t5-t4, t2-t5, t2-t1, ave_total);
 
     display_keypatch(t2-t1);
 } 

@@ -105,6 +105,7 @@ V3D Zero3d(0, 0, 0);
 V3F Zero3f(0, 0, 0);
 // Vector3d Lidar_offset_to_IMU(0.04165, 0.02326, -0.0284); // Avia
 Vector3d Lidar_offset_to_IMU;
+Matrix3d Lid_rot_to_IMU;
 int iterCount = 0, feats_down_size = 0, NUM_MAX_ITERATIONS = 0, laserCloudValidNum = 0,\
     effct_feat_num = 0, time_log_counter = 0, publish_count = 0;
 int MIN_IMG_COUNT = 0;
@@ -754,7 +755,7 @@ void publish_frame_world_rgb(const ros::Publisher & pubLaserCloudFullRes, lidar_
         sensor_msgs::PointCloud2 laserCloudmsg;
         if (img_en)
         {
-            cout<<"RGB pointcloud size: "<<laserCloudWorldRGB->size()<<endl;
+            cout<<"[ INFO ]: RGB pointcloud size: "<<laserCloudWorldRGB->size()<<endl;
             pcl::toROSMsg(*laserCloudWorldRGB, laserCloudmsg);
         }
         else
@@ -1198,6 +1199,8 @@ int main(int argc, char** argv)
     extT<<VEC_FROM_ARRAY(extrinT);
     extR<<MAT_FROM_ARRAY(extrinR);
     Lidar_offset_to_IMU = extT;
+    Lid_rot_to_IMU = extR;
+    cout<<"Lid_rot_to_IMU:\n"<<"["<<Lid_rot_to_IMU<<"]"<<endl;
     lidar_selection::LidarSelectorPtr lidar_selector(new lidar_selection::LidarSelector(grid_size, new SparseMap));
     if(!vk::camera_loader::loadFromRosNs("laserMapping", lidar_selector->cam))
         throw std::runtime_error("Camera model not correctly specified.");
@@ -1416,8 +1419,17 @@ int main(int argc, char** argv)
         {
             if(feats_down_body->points.size() > 5)
             {
+                feats_down_size = feats_down_body->points.size();
+                feats_down_world->resize(feats_down_size);
+                for (int it_down = 0; it_down < feats_down_body->points.size(); it_down++)
+                {
+                    /* transform to world frame */
+                    pointBodyToWorld(&(feats_down_body->points[it_down]), &(feats_down_world->points[it_down]));
+                }
+
                 ikdtree.set_downsample_param(filter_size_map_min);
-                ikdtree.Build(feats_down_body->points);
+                // ikdtree.Build(feats_down_body->points);
+                ikdtree.Build(feats_down_world->points);
             }
             continue;
         }
@@ -1616,7 +1628,18 @@ int main(int argc, char** argv)
                 {
                     const PointType &laser_p  = laserCloudOri->points[i];
                     V3D point_this(laser_p.x, laser_p.y, laser_p.z);
+
+                    // cout<<"point1: "<<(point_this+Lidar_offset_to_IMU).transpose()<<"     ";
+                    // cout<<"point2: "<<(Lid_rot_to_IMU * point_this + Lidar_offset_to_IMU).transpose()<<endl;
+
+                    //point_this += Lidar_offset_to_IMU;
+                    //point_this = Lid_rot_to_IMU * point_this + Lidar_offset_to_IMU;
+                    MatrixXd point_this_m=Lid_rot_to_IMU * point_this;
+                    point_this(0)=point_this_m(0,0);
+                    point_this(1)=point_this_m(1,0);
+                    point_this(2)=point_this_m(2,0);
                     point_this += Lidar_offset_to_IMU;
+
                     M3D point_crossmat;
                     point_crossmat<<SKEW_SYM_MATRX(point_this);
 
@@ -1707,6 +1730,8 @@ int main(int argc, char** argv)
                     nearest_search_en = true;
                     rematch_num ++;
                 }
+
+                cout<<"[ INFO ]: rematch_num: "<<rematch_num<<", iterCount: "<<iterCount<<endl;
 
                 /*** Convergence Judgements and Covariance Update ***/
                 if (!EKF_stop_flg && (rematch_num >= 2 || (iterCount == NUM_MAX_ITERATIONS - 1)))

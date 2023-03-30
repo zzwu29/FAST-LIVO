@@ -20,7 +20,7 @@ cam_fy: 4.267976260903337e+02
 cam_cx: 3.860151866550880e+02
 cam_cy: 2.419130336743440e+02
 
-map_file_path: "/home/zzwu/fastLIVO_workspace/src/FAST-LIVO/Pcd"
+map_file_path: "/home/zzwu/Desktop/ws_fast_livo/src/FAST-LIVO/Pcd"
 
 common:
     lid_topic:  "/os1_cloud_node1/points"

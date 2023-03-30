@@ -1133,8 +1133,8 @@ int main(int argc, char** argv)
     ros::NodeHandle nh;
     image_transport::ImageTransport it(nh);
     readParameters(nh);
-    cout<<"map_file_path ---> "<<map_file_path<<endl;
-    cout<<"debug:"<<debug<<" MIN_IMG_COUNT: "<<MIN_IMG_COUNT<<endl;
+    cout<<"map_file_path -> "<<map_file_path<<endl;
+    // cout<<"debug:"<<debug<<" MIN_IMG_COUNT: "<<MIN_IMG_COUNT<<endl;
     pcl_wait_pub->clear();
     // pcl_visual_wait_pub->clear();
     ros::Subscriber sub_pcl = p_pre->lidar_type == AVIA ? \
@@ -1200,7 +1200,7 @@ int main(int argc, char** argv)
     extR<<MAT_FROM_ARRAY(extrinR);
     Lidar_offset_to_IMU = extT;
     Lid_rot_to_IMU = extR;
-    cout<<"Lid_rot_to_IMU:\n"<<"["<<Lid_rot_to_IMU<<"]"<<endl;
+    // cout<<"Lid_rot_to_IMU:\n"<<"["<<Lid_rot_to_IMU<<"]"<<endl;
     lidar_selection::LidarSelectorPtr lidar_selector(new lidar_selection::LidarSelector(grid_size, new SparseMap));
     if(!vk::camera_loader::loadFromRosNs("laserMapping", lidar_selector->cam))
         throw std::runtime_error("Camera model not correctly specified.");

@@ -35,6 +35,7 @@ mapping:
     acc_cov_scale: 100 #10
     gyr_cov_scale: 10000 #10
     fov_degree:    180
+    # up imu, down lidar
     extrinsic_T: [ 0.0, 0.0, 0.0]
     extrinsic_R: [ 1, 0, 0,
                    0, 1, 0,
@@ -43,8 +44,8 @@ mapping:
 camera:
     img_topic: /left/image_raw 
     # NTU_VIRAL
+    # up cam, down lidar
     Rcl: [0.0218308, 0.99976, -0.00201407,
          -0.0131205, 0.00230088, 0.999911,
           0.999676, -0.0218025, 0.0131676]
-    # Pcl: [0.122993,  0.0398643, -0.0577101]
-    Pcl: [0.074195,  -0.015787, 0.046549]
+    Pcl: [0.122993,  0.0398643, -0.0577101]

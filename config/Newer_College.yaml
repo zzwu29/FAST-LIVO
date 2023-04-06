@@ -2,17 +2,17 @@ feature_extract_enable : 0
 point_filter_num : 4
 max_iteration : 10
 dense_map_enable : 1
-filter_size_surf : 0.5 # 0.3
-filter_size_map : 0.5 # 0.4
+filter_size_surf : 0.3 # 0.3
+filter_size_map : 0.4 # 0.4
 cube_side_length : 20 
 debug : 0
 grid_size : 40
 patch_size : 8
 img_enable : 1
 lidar_enable : 1
-outlier_threshold : 50
+outlier_threshold : 300
 ncc_en: true
-ncc_thre: 0.5
+ncc_thre: 1
 img_point_cov : 1000
 laser_point_cov : 0.001
 cam_fx: 353.6540189302263
@@ -50,8 +50,3 @@ camera:
           -0.000999064921799409   ,   0.00229558606890001   ,    -0.999996866072031 ,
               0.999950906443811   ,     0.009860597257416   , -0.000976383084368648 ]
     Pcl: [0.0543586322817334,  -0.0158579534573788, -0.0832175695378162]
-
-    #    0.00985832498360809   ,    -0.999948748139787   ,  -0.00230532474724426        0.0543586322817334
-    #  -0.000999064921799409   ,   0.00229558606890001   ,    -0.999996866072031       -0.0158579534573788
-    #      0.999950906443811   ,     0.009860597257416   , -0.000976383084368648       -0.0832175695378162
-    #                      0                         0                         0                         1

@@ -1084,8 +1084,7 @@ void LidarSelector::detect(cv::Mat img, PointCloudXYZI::Ptr pg)
     frame_cont ++;
     ave_total = ave_total * (frame_cont - 1) / frame_cont + (t2 - t1) / frame_cont;
 
-    printf("[ VIO ]: time: addFromSparseMap: %0.6f addSparseMap: %0.6f ComputeJ: %0.6f addObservation: %0.6f total time: %0.6f ave_total: %0.6f.\n"
-    , t3-t1, t4-t3, t5-t4, t2-t5, t2-t1, ave_total);
+    printf("[ VIO ]: time: addFromSparseMap: %0.6f addSparseMap: %0.6f ComputeJ: %0.6f addObservation: %0.6f total time: %0.6f ave_total: %0.6f.\n", t3-t1, t4-t3, t5-t4, t2-t5, t2-t1, ave_total);
 
     display_keypatch(t2-t1);
 } 

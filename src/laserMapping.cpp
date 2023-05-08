@@ -427,7 +427,7 @@ void standard_pcl_cbk(const sensor_msgs::PointCloud2::ConstPtr &msg)
     PointCloudXYZI::Ptr  ptr(new PointCloudXYZI());
     p_pre->process(msg, ptr);
     // ROS_INFO("get point cloud at time: %.6f and size: %d", msg->header.stamp.toSec() - 0.1, ptr->points.size());
-    printf("[ INFO ]: get point cloud at time: %.6f and size: %d.\n", msg->header.stamp.toSec(), int(ptr->points.size()));
+    printf("[ INFO ]: get point cloud at time: %.6f, size: %d.\n", msg->header.stamp.toSec(), int(ptr->points.size()));
     lidar_buffer.push_back(ptr);
     // time_buffer.push_back(msg->header.stamp.toSec() - 0.1);
     // last_timestamp_lidar = msg->header.stamp.toSec() - 0.1;
@@ -471,7 +471,7 @@ void imu_cbk(const sensor_msgs::Imu::ConstPtr &msg_in)
         imu_buffer.clear();
         flg_reset = true;
     }
-
+    printf("[ INFO ]: get imu at time: %.6f.\n", timestamp);
     last_timestamp_imu = timestamp;
 
     imu_buffer.push_back(msg);
@@ -540,6 +540,7 @@ bool sync_packages(LidarMeasureGroup &meas)
             if (img_buffer.size()>0) // temp method, ignore img topic when no lidar points, keep sync
             {
                 lidar_buffer.pop_front();
+                time_buffer.pop_front();
                 img_buffer.pop_front();
             }
             mtx_buffer.unlock();
@@ -575,13 +576,14 @@ bool sync_packages(LidarMeasureGroup &meas)
         lidar_pushed = false; // sync one whole lidar scan.
         meas.is_lidar_end = true; // process lidar topic, so timestamp should be lidar scan end.
         meas.measures.push_back(m);
+        cout<<fixed<<setprecision(6)<<"lidar_end_time (1): "<<lidar_end_time<<", last_timestamp_imu: "<<last_timestamp_imu<<endl;
         // ROS_ERROR("out sync");
         return true;
     }
     struct MeasureGroup m;
     // cout<<"lidar_buffer.size(): "<<lidar_buffer.size()<<" img_buffer.size(): "<<img_buffer.size()<<endl;
     // cout<<"time_buffer.size(): "<<time_buffer.size()<<" img_time_buffer.size(): "<<img_time_buffer.size()<<endl;
-    // cout<<"img_time_buffer.front(): "<<img_time_buffer.front()<<"lidar_end_time: "<<lidar_end_time<<"last_timestamp_imu: "<<last_timestamp_imu<<endl;
+    //cout<<fixed<<setprecision(6)<<"lidar_end_time: "<<lidar_end_time<<", last_timestamp_imu: "<<last_timestamp_imu<<", img_time_buffer.front(): "<<img_time_buffer.front()<<endl;
     if ((img_time_buffer.front()>lidar_end_time) )
     { // has img topic, but img topic timestamp larger than lidar end time, process lidar topic.
         if (last_timestamp_imu < lidar_end_time+0.02) 
@@ -606,6 +608,7 @@ bool sync_packages(LidarMeasureGroup &meas)
         lidar_pushed = false;
         meas.is_lidar_end = true;
         meas.measures.push_back(m);
+        cout<<fixed<<setprecision(6)<<"lidar_end_time (2): "<<lidar_end_time<<", last_timestamp_imu: "<<last_timestamp_imu<<endl;
     }
     else 
     {
@@ -633,6 +636,7 @@ bool sync_packages(LidarMeasureGroup &meas)
         sig_buffer.notify_all();
         meas.is_lidar_end = false; // has img topic in lidar scan, so flag "is_lidar_end=false" 
         meas.measures.push_back(m);
+        cout<<fixed<<setprecision(6)<<"img_time: "<<img_start_time<<", last_timestamp_imu: "<<last_timestamp_imu<<endl;
     }
     // ROS_ERROR("out sync");
     return true;
@@ -730,6 +734,10 @@ void publish_frame_world_rgb(const ros::Publisher & pubLaserCloudFullRes, lidar_
             pointRGB.y =  pcl_wait_pub->points[i].y;
             pointRGB.z =  pcl_wait_pub->points[i].z;
             V3D p_w(pcl_wait_pub->points[i].x, pcl_wait_pub->points[i].y, pcl_wait_pub->points[i].z);
+            //-------------delete point not in the camera-----------------
+            V3D pf(lidar_selector->new_frame_->w2f(p_w)); 
+            if(pf[2]<0) continue;
+            //----------------------------------------------------------
             V2D pc(lidar_selector->new_frame_->w2c(p_w));
             if (lidar_selector->new_frame_->cam_->isInFrame(pc.cast<int>(),0))
             {
@@ -803,6 +811,28 @@ void publish_frame_world(const ros::Publisher & pubLaserCloudFullRes)
         // pcl_wait_pub->clear();
     }
     // mtx_buffer_pointcloud.unlock();
+}
+
+//fast-lio
+void publish_frame_world2(const ros::Publisher & pubLaserCloudFull)
+{
+    PointCloudXYZI::Ptr laserCloudFullRes(dense_map_en ? feats_undistort : feats_down_body);
+    int size = laserCloudFullRes->points.size();
+    PointCloudXYZI::Ptr laserCloudWorld( \
+                    new PointCloudXYZI(size, 1));
+
+    for (int i = 0; i < size; i++)
+    {
+        RGBpointBodyToWorld(&laserCloudFullRes->points[i], \
+                            &laserCloudWorld->points[i]);
+    }
+
+    sensor_msgs::PointCloud2 laserCloudmsg;
+    pcl::toROSMsg(*laserCloudWorld, laserCloudmsg);
+    laserCloudmsg.header.stamp = ros::Time().fromSec(lidar_end_time);
+    laserCloudmsg.header.frame_id = "camera_init";
+    pubLaserCloudFull.publish(laserCloudmsg);
+    publish_count -= PUBFRAME_PERIOD;
 }
 
 void publish_visual_world_map(const ros::Publisher & pubVisualCloud)
@@ -1115,6 +1145,8 @@ void readParameters(ros::NodeHandle &nh)
     nh.param<double>("preprocess/blind", p_pre->blind, 0.01);
     nh.param<int>("preprocess/lidar_type", p_pre->lidar_type, AVIA);
     nh.param<int>("preprocess/scan_line", p_pre->N_SCANS, 16);
+    nh.param<int>("preprocess/timestamp_unit", p_pre->time_unit, US);
+    nh.param<int>("preprocess/scan_rate", p_pre->SCAN_RATE, 10);
     nh.param<int>("point_filter_num", p_pre->point_filter_num, 2);
     nh.param<bool>("feature_extract_enable", p_pre->feature_enabled, 0);
     nh.param<vector<double>>("mapping/extrinsic_T", extrinT, vector<double>());
@@ -1125,6 +1157,8 @@ void readParameters(ros::NodeHandle &nh)
     nh.param<int>("patch_size", patch_size, 4);
     nh.param<double>("outlier_threshold",outlier_threshold,100);
     nh.param<double>("ncc_thre", ncc_thre, 100);
+
+    std::cout<<"lidar_type: "<<p_pre->lidar_type<<", N_SCANS: "<<p_pre->N_SCANS<<" , SCAN_RATE:"<<p_pre->SCAN_RATE<<" , time_unit:"<<p_pre->time_unit<<std::endl;
 }
 
 int main(int argc, char** argv)
@@ -1133,7 +1167,8 @@ int main(int argc, char** argv)
     ros::NodeHandle nh;
     image_transport::ImageTransport it(nh);
     readParameters(nh);
-    cout<<"map_file_path -> "<<map_file_path<<endl;
+    cout<<"img_enable: "<<img_en<<" , dense_map_enable: "<<dense_map_en<<endl;
+    cout<<"map_file_path: "<<map_file_path<<endl;
     // cout<<"debug:"<<debug<<" MIN_IMG_COUNT: "<<MIN_IMG_COUNT<<endl;
     pcl_wait_pub->clear();
     // pcl_visual_wait_pub->clear();
@@ -1146,7 +1181,7 @@ int main(int argc, char** argv)
     ros::Publisher pubLaserCloudFullRes = nh.advertise<sensor_msgs::PointCloud2>
             ("/cloud_registered", 100);
     ros::Publisher pubLaserCloudFullResRgb = nh.advertise<sensor_msgs::PointCloud2>
-            ("/cloud_registered_rgb", 100);
+            ("/cloud_registered_rgb", 100);  // point cloud in rviz (livo)
     ros::Publisher pubVisualCloud = nh.advertise<sensor_msgs::PointCloud2>
             ("/cloud_visual_map", 100);
     ros::Publisher pubSubVisualCloud = nh.advertise<sensor_msgs::PointCloud2>
@@ -1159,6 +1194,9 @@ int main(int argc, char** argv)
             ("/aft_mapped_to_init", 10);
     ros::Publisher pubPath          = nh.advertise<nav_msgs::Path> 
             ("/path", 10);
+    //fast-lio
+    ros::Publisher pubLaserCloudFull = nh.advertise<sensor_msgs::PointCloud2>
+            ("/cloud_registered_lidar", 100);  // point cloud in rviz (lio)
 
 #ifdef DEPLOY
     ros::Publisher mavros_pose_publisher = nh.advertise<geometry_msgs::PoseStamped>("/mavros/vision_pose/pose", 10);
@@ -1298,6 +1336,9 @@ int main(int argc, char** argv)
         state_propagat = state;
         #endif
 
+        cout<<fixed<<setprecision(6)<<"after Process2: "<<LidarMeasures.lidar_beg_time<<", "<<feats_undistort->points.size()<<endl;
+
+
         if (lidar_selector->debug)
         {
             LidarMeasures.debug_show();
@@ -1305,19 +1346,20 @@ int main(int argc, char** argv)
 
         if (feats_undistort->empty() || (feats_undistort == nullptr))
         {
-            // cout<<" No point!!!"<<endl;
+            // cout<<"No point, skip this scan!(IMU Process)"<<endl;
             if (!fast_lio_is_ready)
             {
                 first_lidar_time = LidarMeasures.lidar_beg_time;
                 p_imu->first_lidar_time = first_lidar_time;
                 LidarMeasures.measures.clear();
-                cout<<fixed<<setprecision(4)<<"first_lidar_time: "<<first_lidar_time<<", ";
-                cout<<"FAST-LIO not ready"<<endl;
+                // cout<<fixed<<setprecision(4)<<"!!! FAST-LIO not ready at: "<<first_lidar_time<<endl;
                 continue;
             }
+            // continue;
         }
         else
         {
+            // cout<<fixed<<setprecision(4)<<"--- FAST-LIO ready at: "<<first_lidar_time<<endl;
             int size = feats_undistort->points.size();
         }
         fast_lio_is_ready = true;
@@ -1381,6 +1423,7 @@ int main(int argc, char** argv)
                 out_msg.image = img_rgb;
                 img_pub.publish(out_msg.toImageMsg());
 
+                //publish lidar-imu-camera fusion point cloud (i.e., img_enable = 1)
                 publish_frame_world_rgb(pubLaserCloudFullResRgb, lidar_selector);
                 publish_visual_world_sub_map(pubSubVisualCloud);
                 
@@ -1451,6 +1494,11 @@ int main(int argc, char** argv)
         cout<<"[ LIO ]: Raw feature num: "<<feats_undistort->points.size()<<" downsamp num "<<feats_down_size<<" Map num: "<<featsFromMapNum<< "." << endl;
 
         /*** ICP and iterated Kalman filter update ***/
+        if (feats_down_size < 5)
+        {
+            // cout<<"No point, skip this scan!(ICP)"<<endl;
+            continue;
+        }
         normvec->resize(feats_down_size);
         feats_down_world->resize(feats_down_size);
         //vector<double> res_last(feats_down_size, 1000.0); // initial //
@@ -1562,7 +1610,8 @@ int main(int argc, char** argv)
                             kdtreeSurfFromMap->nearestKSearch(point_world, NUM_MATCH_POINTS, points_near, pointSearchSqDis);
                         #endif
 
-                        point_selected_surf[i] = pointSearchSqDis[NUM_MATCH_POINTS - 1] > 5 ? false : true;
+                        point_selected_surf[i] = points_near.size() < NUM_MATCH_POINTS ? false : (pointSearchSqDis[NUM_MATCH_POINTS - 1] > 5 ? false : true);
+                        // point_selected_surf[i] = pointSearchSqDis[NUM_MATCH_POINTS - 1] > 5 ? false : true;
 
                         #ifdef USE_ikdforest
                             point_selected_surf[i] = point_selected_surf[i] && (search_flag == 0);
@@ -1580,7 +1629,10 @@ int main(int argc, char** argv)
                     //     printf("\nERROR: Return Points is less than 5\n\n");
                     //     printf("Target Point is: (%0.3f,%0.3f,%0.3f)\n",point_world.x,point_world.y,point_world.z);
                     // }
-                    if (!point_selected_surf[i] || points_near.size() < NUM_MATCH_POINTS) continue;
+                    if (!point_selected_surf[i] || points_near.size() < NUM_MATCH_POINTS) 
+                    {
+                        continue;
+                    }
 
                     VF(4) pabcd;
                     point_selected_surf[i] = false;
@@ -1781,6 +1833,7 @@ int main(int argc, char** argv)
         int size = laserCloudFullRes->points.size();
         PointCloudXYZI::Ptr laserCloudWorld( new PointCloudXYZI(size, 1));
 
+        cout<<"feats_undistort: "<<feats_undistort->points.size()<<", feats_down_body: "<<feats_down_body->points.size()<<endl;
         for (int i = 0; i < size; i++)
         {
             RGBpointBodyToWorld(&laserCloudFullRes->points[i], \
@@ -1789,6 +1842,11 @@ int main(int argc, char** argv)
         *pcl_wait_pub = *laserCloudWorld;
 
         publish_frame_world(pubLaserCloudFullRes);
+
+        //publish lidar-imu fusion point cloud (i.e., img_enable = 0)
+        //according to fast-lio
+        publish_frame_world2(pubLaserCloudFull); 
+
         // publish_visual_world_map(pubVisualCloud);
         publish_effect_world(pubLaserCloudEffect);
         // publish_map(pubLaserCloudMap);

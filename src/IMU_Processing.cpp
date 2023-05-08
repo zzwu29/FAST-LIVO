@@ -632,9 +632,18 @@ void ImuProcess::UndistortPcl(LidarMeasureGroup &lidar_meas, StatesGroup &state_
   const double &imu_end_time = v_imu.back()->header.stamp.toSec();
   const double pcl_beg_time = MAX(lidar_meas.lidar_beg_time, lidar_meas.last_update_time);
   // const double &pcl_beg_time = meas.lidar_beg_time;
+
+  cout<<fixed<<setprecision(6)<<"lidar_meas.lidar_beg_time: "<<lidar_meas.lidar_beg_time<<", lidar_meas.last_update_time: "<<lidar_meas.last_update_time<<endl;
   
   /*** sort point clouds by offset time ***/
+  // pcl_out = *(lidar_meas.lidar);
+  // sort(pcl_out.points.begin(), pcl_out.points.end(), time_list);
+  // const double pcl_end_time = lidar_meas.is_lidar_end? 
+  //                                       lidar_meas.lidar_beg_time + lidar_meas.lidar->points.back().curvature / double(1000):
+  //                                       lidar_meas.lidar_beg_time + lidar_meas.measures.back().img_offset_time;
+
   pcl_out.clear();
+
   auto pcl_it = lidar_meas.lidar->points.begin() + lidar_meas.lidar_scan_index_now;
   auto pcl_it_end = lidar_meas.lidar->points.end(); 
   const double pcl_end_time = lidar_meas.is_lidar_end? 
@@ -643,12 +652,28 @@ void ImuProcess::UndistortPcl(LidarMeasureGroup &lidar_meas, StatesGroup &state_
   const double pcl_offset_time = lidar_meas.is_lidar_end? 
                                         (pcl_end_time - lidar_meas.lidar_beg_time) * double(1000):
                                         0.0;
-  while (pcl_it != pcl_it_end && pcl_it->curvature <= pcl_offset_time)
+  // const double pcl_end_time = lidar_meas.lidar_beg_time + lidar_meas.lidar->points.back().curvature / double(1000);
+  // const double pcl_offset_time = (pcl_end_time - pcl_beg_time) * double(1000);
+  
+  cout<<"pcl_end_time: "<<pcl_end_time<<", pcl_beg_time: "<<pcl_beg_time<<endl;
+  cout<<"pcl_offset_time: "<<pcl_offset_time<<endl;
+  // lidar_meas.lidar->points.back().curvature = nan
+  // while (pcl_it != pcl_it_end && pcl_it->curvature <= pcl_offset_time)
+  while (pcl_it != pcl_it_end && pcl_it->curvature <= pcl_offset_time&& lidar_meas.is_lidar_end)
   {
     pcl_out.push_back(*pcl_it);
     pcl_it++;
     lidar_meas.lidar_scan_index_now++;
   }
+
+  if(lidar_meas.is_lidar_end)
+  cout<<fixed<<setprecision(6)<<"LIO: "<<lidar_meas.lidar_beg_time<<", Point: "<<pcl_out.points.size()<<endl;
+  else
+  {
+    cout<<fixed<<setprecision(6)<<"VIO: "<<pcl_end_time<<", Point: "<<pcl_out.points.size()<<", lidar_beg_time: "<<lidar_meas.lidar_beg_time<<endl;
+  }
+
+
   // cout<<"pcl_offset_time:  "<<pcl_offset_time<<"pcl_it->curvature:  "<<pcl_it->curvature<<endl;
   // cout<<"lidar_meas.lidar_scan_index_now:"<<lidar_meas.lidar_scan_index_now<<endl;
   lidar_meas.last_update_time = pcl_end_time;
@@ -661,6 +686,7 @@ void ImuProcess::UndistortPcl(LidarMeasureGroup &lidar_meas, StatesGroup &state_
   // cout<<"UndistortPcl [ IMU Process ]: Process lidar from "<<pcl_beg_time<<" to "<<pcl_end_time<<", " \
   //          <<meas.imu.size()<<" imu msgs from "<<imu_beg_time<<" to "<<imu_end_time<<endl;
   // cout<<"v_imu.size: "<<v_imu.size()<<endl;
+
   /*** Initialize IMU pose ***/
   IMUpose.clear();
   // IMUpose.push_back(set_pose6d(0.0, Zero3d, Zero3d, state.vel_end, state.pos_end, state.rot_end));
@@ -782,7 +808,11 @@ void ImuProcess::UndistortPcl(LidarMeasureGroup &lidar_meas, StatesGroup &state_
   //   cout<<endl<<"UndistortPcl size:"<<IMUpose.size()<<endl;
   //   cout<<"Undistorted pcl_out.size: "<<pcl_out.size()
   //          <<"lidar_meas.size: "<<lidar_meas.lidar->points.size()<<endl;
-    if (pcl_out.points.size()<1) return;
+
+  if (pcl_out.points.size()<1) 
+  {
+    return;
+  }
   /*** undistort each lidar point (backward propagation) ***/
   auto it_pcl = pcl_out.points.end() - 1;
   for (auto it_kp = IMUpose.end() - 1; it_kp != IMUpose.begin(); it_kp--)

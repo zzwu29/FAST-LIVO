@@ -1,0 +1,129 @@
+feature_extract_enable : 0
+point_filter_num : 4
+max_iteration : 10
+dense_map_enable : 1
+filter_size_surf : 0.15
+filter_size_map : 0.3
+cube_side_length : 20
+debug : 0
+grid_size : 40
+patch_size : 8
+img_enable : 1
+lidar_enable : 1
+outlier_threshold : 150 # 260
+ncc_en: false
+ncc_thre: 0.5
+img_point_cov : 1000 # 1000
+laser_point_cov : 0.001 # 0.001
+
+# feature_extract_enable : 0
+# point_filter_num : 4
+# max_iteration : 10
+# dense_map_enable : 1
+# filter_size_surf : 0.15
+# filter_size_map : 0.3
+# cube_side_length : 20
+# debug : 0
+# grid_size : 40
+# patch_size : 8
+# img_enable : 1
+# lidar_enable : 1
+# outlier_threshold : 150 # The outlier threshold value of photometric error (square) of a single pixel. It is recommended that 50~250 for the darker scenes, 500~1000 for the brighter scenes. The smaller the value is, the faster the vio submodule is, but the weaker the anti-degradation ability is.
+# ncc_en: false
+# ncc_thre: 0.5
+# img_point_cov : 1000 # 1000
+# laser_point_cov : 0.001 # 0.001
+
+map_file_path: "/home/zzwu/Desktop/ws_fast_livo/src/FAST-LIVO/Pcd"
+
+preprocess:
+    lidar_type: 2                # 1 for Livox serials LiDAR, 2 for Velodyne LiDAR, 3 for ouster LiDAR, 
+    scan_line: 16
+    scan_rate: 10                # only need to be set for velodyne, unit: Hz,
+    timestamp_unit: 0            # the unit of time/t field in the PointCloud2 rostopic: 0-second, 1-milisecond, 2-microsecond, 3-nanosecond.
+    blind: 0.1  # blind x m disable
+
+
+# # # Alpha resize
+# cam_fx: 586.385866569268
+# cam_fy: 586.182002992172 
+# cam_cx: 308.970772857629
+# cam_cy: 253.836363647693
+
+# common:
+#     lid_topic:  "/Alpha/velodyne_points"
+#     imu_topic:  "/Alpha/imu/data"
+
+# mapping:
+#     acc_cov_scale: 1000 #10
+#     gyr_cov_scale: 10000 #1000
+#     fov_degree:    180
+#     # up imu, down lidar
+#     extrinsic_T: [ 0.0103268328484039, -0.0442605835459492, 0.13948061773042]
+#     extrinsic_R: [     0.999952972927367  ,     0.00966623337013349 ,    -0.000789813388579987,
+#                     -0.00968631556041317  ,       0.999457004695895 ,      -0.0314939215031592,
+#                     0.000484959759820694  ,      0.0315000949675293 ,        0.999503635169536 ]
+
+# camera:
+#     img_topic: /Alpha/left_camera
+#     # up C, down L
+#     Rcl: [     0.0164017677024984  ,      -0.999053252579188  ,      0.0402936785014358, 
+#               -0.0101129488998728  ,     -0.0404627959138742  ,      -0.999129866639658, 
+#                 0.999814337905184  ,      0.0159800080655785  ,     -0.0107670358707582 ]
+#     Pcl: [0.199678265815372,  -0.117252763133455, -0.133346899705048]
+
+# ----------------------------------------------------------Bob------------------------
+cam_fx: 588.185994500867
+cam_fy: 588.046492290377
+cam_cx: 310.838149150662
+cam_cy: 254.091057863739
+
+common:
+    lid_topic:  "/Bob/velodyne_points"
+    imu_topic:  "/Bob/imu/data"
+
+mapping:
+    acc_cov_scale: 1000 #10
+    gyr_cov_scale: 10000 #1000
+    fov_degree:    180
+    # up imu, down lidar
+    extrinsic_T: [ 0.0139311014210117, -0.0464485767428643, 0.0903215864350017]
+    extrinsic_R: [     0.999836003511839    ,    0.0173801887387422   ,  -0.00508910355728107,
+                     -0.0174346317099175    ,     0.999789063153947   ,   -0.0108560221170907,
+                      0.0048993511713948    ,    0.0109429618430478   ,     0.999928116808771]  
+
+camera:
+    img_topic: /Bob/left_camera
+    # up C, down L
+    Rcl: [ 0.0178700105438756  ,       -0.99972876902093  ,      0.0149348958836794,
+            -0.01760072052806  ,     -0.0152495066924046  ,      -0.999728796815682,
+            0.999685389190046  ,      0.0176022992115484  ,      -0.017868455512781]
+    Pcl: [0.199872158085781,  -0.0777034390991337, -0.137925895704316]
+
+# ----------------------------------------------------------Carol------------------------
+# cam_fx: 588.134647400106
+# cam_fy: 588.216764828585
+# cam_cx: 302.377637942627
+# cam_cy: 259.372576022142
+
+# common:
+#     lid_topic:  "/Carol/velodyne_points"
+#     imu_topic:  "/Carol/imu/data"
+
+# mapping:
+#     acc_cov_scale: 100 #10
+#     gyr_cov_scale: 10000 #1000
+#     fov_degree:    180
+#     # up imu, down lidar
+#     extrinsic_T: [ -0.0318179939009573, -0.00505843616310376, 0.202847305690794]
+#     extrinsic_R: [     0.999657143042336     ,   0.0203961038694171   ,     0.0164195754555131 ,
+#                       -0.020033102981336     ,    0.999557758585733   ,    -0.0219762572524322 ,
+#                      -0.0168605456149819     ,   0.0216397849656232   ,      0.999623654408308 ]
+
+# camera:
+#     img_topic: /Carol/left_camera
+#     # up C, down L
+#     Rcl: [    0.0247134332152117  ,       -0.99950149550066  ,      0.0196470534854494 ,
+#               0.0122073849340174  ,     -0.0193498704129996  ,      -0.999738246876687 ,
+#                0.999620040801398  ,      0.0249468035415962  ,      0.0117230977675276 ]
+#     Pcl: [0.162321813856716,   -0.168303133886967,-0.159429327456614]

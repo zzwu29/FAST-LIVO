@@ -30,6 +30,8 @@ Preprocess::Preprocess()
   smallp_intersect = cos(smallp_intersect/180*M_PI);
 
   given_offset_time = false;
+
+  img_scale = 0.5;
 }
 
 Preprocess::~Preprocess() {}

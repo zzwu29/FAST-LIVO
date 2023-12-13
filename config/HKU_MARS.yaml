@@ -1,0 +1,100 @@
+# lid_topic: The topic name of LiDAR data.
+# imu_topic: The topic name of IMU data.
+# img_topic: The topic name of camera data.
+# img_enable: Enbale vio submodule.
+# lidar_enable: Enbale lio submodule.
+# point_filter_num: The sampling interval for a new scan. It is recommended that 3~4 for faster odometry, 1~2 for denser map.
+# outlier_threshold: The outlier threshold value of photometric error (square) of a single pixel. 
+#                       It is recommended that 50~250 for the darker scenes, 500~1000 for the brighter scenes. 
+#                       The smaller the value is, the faster the vio submodule is, but the weaker the anti-degradation ability is.
+# img_point_cov: The covariance of photometric errors per pixel.
+# laser_point_cov: The covariance of point-to-plane redisual per point.
+# filter_size_surf: Downsample the points in a new scan. It is recommended that 0.05~0.15 for indoor scenes, 0.3~0.5 for outdoor scenes.
+# filter_size_map: Downsample the points in LiDAR global map. It is recommended that 0.15~0.3 for indoor scenes, 0.4~0.5 for outdoor scenes.
+
+feature_extract_enable : 0
+point_filter_num : 2
+max_iteration : 10
+dense_map_enable : 1
+filter_size_surf : 0.35 # 0.15
+filter_size_map : 0.5 # 0.3
+cube_side_length : 20
+debug : 0
+grid_size : 40
+patch_size : 8
+img_enable : 1
+lidar_enable : 1
+outlier_threshold : 300 # 300
+ncc_en: false
+ncc_thre: 0.5
+img_point_cov : 20 # 100
+laser_point_cov : 0.001 # 0.001
+
+# ------------------hk_island01------------------
+# img_scale: 1
+# cam_fx: 1444.43
+# cam_fy: 1444.34
+# cam_cx: 1177.80
+# cam_cy: 1043.60
+
+# img_scale: 0.5
+# cam_fx: 722.215
+# cam_fy: 722.17
+# cam_cx: 588.9
+# cam_cy: 521.8
+
+# img_scale: 0.25
+# cam_fx: 361.1075
+# cam_fy: 361.085
+# cam_cx: 294.45
+# cam_cy: 260.9
+# ------------------hk_island01------------------
+
+# ------------------hkisland_gnss01------------------
+img_scale: 0.25
+cam_fx: 361.1075
+cam_fy: 361.085
+cam_cx: 294.875
+cam_cy: 261.225
+# ------------------hkisland_gnss01------------------
+
+
+
+map_file_path: "/home/zzwu/Desktop/ws_fast_livo/src/FAST-LIVO/Pcd"
+
+common:
+    lid_topic:  "/livox/lidar"
+    imu_topic:  "/livox/imu"
+
+preprocess:
+    lidar_type: 1 # Livox Avia LiDAR
+    scan_line: 6
+    blind: 5 # blind x m disable
+
+mapping:
+    acc_cov_scale: 100
+    gyr_cov_scale: 10000
+    fov_degree:    90
+    # up imu, down lidar
+    extrinsic_T: [ 0.04165, 0.02326, -0.0284 ]
+    extrinsic_R: [ 1, 0, 0,
+                   0, 1, 0,
+                   0, 0, 1]
+
+camera:
+    img_topic: /left_camera/image
+    # up C, down L
+
+    # # hk_island01
+    # Rcl: [0.00352762,-0.999765,-0.0213775,
+    #   -0.0111803,0.0213369,-0.99971,
+    #   0.999931,0.00376561,-0.0111025]
+    # Pcl: [-0.0025563, 0.0470454, -0.0513375] 
+
+
+    # hkisland_gnss01
+    Rcl: [0.00363212,-0.999819,-0.0213618,
+      -0.0111679,0.0214512,-0.999591,
+      0.999879,0.00375613,-0.0111134]
+    Pcl: [-0.0021928, 0.0470312, -0.0513126] 
+    

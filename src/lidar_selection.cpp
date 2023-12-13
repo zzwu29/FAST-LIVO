@@ -1040,12 +1040,12 @@ V3F LidarSelector::getpixel(cv::Mat img, V2D pc)
     return pixel;
 }
 
-void LidarSelector::detect(cv::Mat img, PointCloudXYZI::Ptr pg) 
+void LidarSelector::detect(cv::Mat img, PointCloudXYZI::Ptr pg, double scale) 
 {
     if(width!=img.cols || height!=img.rows)
     {
-        // std::cout<<"Resize the img scale !!!"<<std::endl;
-        double scale = 0.5;
+        std::cout<<"Resize the img scale, scale = "<<scale<<", please check your cam width, height, and instrinsic!!!"<<std::endl;
+        //double scale = 0.5;
         cv::resize(img,img,cv::Size(img.cols*scale,img.rows*scale),0,0,CV_INTER_LINEAR);
     }
     img_rgb = img.clone();

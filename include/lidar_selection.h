@@ -59,7 +59,7 @@ class LidarSelector {
 
     ~LidarSelector();
 
-    void detect(cv::Mat img, PointCloudXYZI::Ptr pg);
+    void detect(cv::Mat img, PointCloudXYZI::Ptr pg, double scale = 0.5);
     float CheckGoodPoints(cv::Mat img, V2D uv);
     void addFromSparseMap(cv::Mat img, PointCloudXYZI::Ptr pg);
     void addSparseMap(cv::Mat img, PointCloudXYZI::Ptr pg);

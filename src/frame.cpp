@@ -44,6 +44,24 @@ Frame::~Frame()
 
 void Frame::initFrame(const cv::Mat& img)
 {
+  std::cout<<"check image, ";
+  if(img.empty())
+  {
+    std::cout<<"img.empty() ";
+  }
+  if(img.type() != CV_8UC1)
+  {
+    std::cout<<"img.type() != CV_8UC1 ";
+  }
+  if(img.cols != cam_->width())
+  {
+    std::cout<<"img.cols = "<<img.cols<<" but cam_->width() = "<<cam_->width();
+  }
+  if(img.rows != cam_->height())
+  {
+    std::cout<<"img.rows = "<<img.rows<<" but cam_->height() = "<<cam_->height();
+  }
+  std::cout<<endl;
   // check image
   if(img.empty() || img.type() != CV_8UC1 || img.cols != cam_->width() || img.rows != cam_->height())
     throw std::runtime_error("Frame: provided image has not the same size as the camera model or image is not grayscale");

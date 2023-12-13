@@ -710,6 +710,7 @@ void map_incremental()
 
 // PointCloudXYZRGB::Ptr pcl_wait_pub_RGB(new PointCloudXYZRGB(500000, 1));
 PointCloudXYZI::Ptr pcl_wait_pub(new PointCloudXYZI());
+PointCloudXYZRGB points_RGB;
 void publish_frame_world_rgb(const ros::Publisher & pubLaserCloudFullRes, lidar_selection::LidarSelectorPtr lidar_selector)
 {
     // PointCloudXYZI::Ptr laserCloudFullRes(dense_map_en ? feats_undistort : feats_down_body);
@@ -748,9 +749,48 @@ void publish_frame_world_rgb(const ros::Publisher & pubLaserCloudFullRes, lidar_
                 pointRGB.g = pixel[1];
                 pointRGB.b = pixel[0];
                 laserCloudWorldRGB->push_back(pointRGB);
+                points_RGB.push_back(pointRGB);    
             }
 
         }
+
+        //// result in very big .pcd file (grid-like dense point cloud)
+        // PointCloudXYZI points_non_rgb;
+        // #ifdef USE_ikdtree
+        //     if(1)
+        //     {
+        //         PointVector ().swap(ikdtree.PCL_Storage);
+        //         ikdtree.flatten(ikdtree.Root_Node, ikdtree.PCL_Storage, NOT_RECORD);
+        //         points_non_rgb.clear();
+        //         points_non_rgb.points = ikdtree.PCL_Storage;
+        //     }
+        // #else
+        //     kdtreeSurfFromMap->setInputCloud(points_non_rgb);
+        // #endif
+        // size = points_non_rgb.points.size();
+        // for (int i=0; i<size; i++)
+        // {
+        //     PointTypeRGB pointRGB;
+        //     pointRGB.x =  points_non_rgb.points[i].x;
+        //     pointRGB.y =  points_non_rgb.points[i].y;
+        //     pointRGB.z =  points_non_rgb.points[i].z;
+        //     V3D p_w(points_non_rgb.points[i].x, points_non_rgb.points[i].y, points_non_rgb.points[i].z);
+        //     //-------------delete point not in the camera-----------------
+        //     V3D pf(lidar_selector->new_frame_->w2f(p_w)); 
+        //     if(pf[2]<0) continue;
+        //     //----------------------------------------------------------
+        //     V2D pc(lidar_selector->new_frame_->w2c(p_w));
+        //     if (lidar_selector->new_frame_->cam_->isInFrame(pc.cast<int>(),0))
+        //     {
+        //         // cv::Mat img_cur = lidar_selector->new_frame_->img();
+        //         cv::Mat img_rgb = lidar_selector->img_rgb;
+        //         V3F pixel = lidar_selector->getpixel(img_rgb, pc);
+        //         pointRGB.r = pixel[2];
+        //         pointRGB.g = pixel[1];
+        //         pointRGB.b = pixel[0];
+        //         points_RGB.push_back(pointRGB);
+        //     }
+        // }
 
     }
     // else
@@ -1148,6 +1188,7 @@ void readParameters(ros::NodeHandle &nh)
     nh.param<int>("preprocess/timestamp_unit", p_pre->time_unit, US);
     nh.param<int>("preprocess/scan_rate", p_pre->SCAN_RATE, 10);
     nh.param<int>("point_filter_num", p_pre->point_filter_num, 2);
+    nh.param<double>("img_scale", p_pre->img_scale, 0.5);
     nh.param<bool>("feature_extract_enable", p_pre->feature_enabled, 0);
     nh.param<vector<double>>("mapping/extrinsic_T", extrinT, vector<double>());
     nh.param<vector<double>>("mapping/extrinsic_R", extrinR, vector<double>());
@@ -1158,7 +1199,8 @@ void readParameters(ros::NodeHandle &nh)
     nh.param<double>("outlier_threshold",outlier_threshold,100);
     nh.param<double>("ncc_thre", ncc_thre, 100);
 
-    std::cout<<"lidar_type: "<<p_pre->lidar_type<<", N_SCANS: "<<p_pre->N_SCANS<<" , SCAN_RATE:"<<p_pre->SCAN_RATE<<" , time_unit:"<<p_pre->time_unit<<std::endl;
+    std::cout<<"lidar_type: "<<p_pre->lidar_type<<", N_SCANS: "<<p_pre->N_SCANS<<" , SCAN_RATE:"<<p_pre->SCAN_RATE<<" , time_unit:"<<p_pre->time_unit
+        <<" img_scale:"<<p_pre->img_scale <<std::endl;
 }
 
 int main(int argc, char** argv)
@@ -1391,7 +1433,7 @@ int main(int argc, char** argv)
                 //                         &laserCloudWorld->points[i]);
                 // }
 
-                lidar_selector->detect(LidarMeasures.measures.back().img, pcl_wait_pub);
+                lidar_selector->detect(LidarMeasures.measures.back().img, pcl_wait_pub, p_pre->img_scale);
                 // int size = lidar_selector->map_cur_frame_.size();
                 int size_sub = lidar_selector->sub_map_cur_frame_.size();
                 
@@ -1895,6 +1937,7 @@ int main(int argc, char** argv)
     string surf_filename(map_file_path + "/surf.pcd");
     string corner_filename(map_file_path + "/corner.pcd");
     string all_points_filename(map_file_path + "/all_points.pcd");
+    string rgb_pc_filename(map_file_path + "/rgb_pc.pcd");
 
     PointCloudXYZI surf_points, corner_points;
     surf_points = *featsFromMap;
@@ -1904,9 +1947,15 @@ int main(int argc, char** argv)
     if (surf_points.size() > 0)
     {
     pcl::PCDWriter pcd_writer;
-    cout << "saving...";
+    cout << "saving pointcloud, point number : "<<surf_points.size()<<" ...\n";
     pcd_writer.writeBinary(surf_filename, surf_points);
     //pcd_writer.writeBinary(corner_filename, corner_points);
+    }
+    if(points_RGB.size()>0)
+    {
+    pcl::PCDWriter pcd_writer;
+    cout << "saving rgb pointcloud, point number : "<<points_RGB.size()<<" ...\n";
+    pcd_writer.writeBinary(rgb_pc_filename, points_RGB);
     }
 
     #ifndef DEPLOY
@@ -1938,7 +1987,7 @@ int main(int argc, char** argv)
         // plt::pause(0.5);
         // plt::close();
     }
-    cout << "no points saved" << endl;
+    // cout << "no points saved" << endl;
     #endif
 
     return 0;

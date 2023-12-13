@@ -2,6 +2,20 @@
 
 ## Fast and Tightly-coupled Sparse-Direct LiDAR-Inertial-Visual Odometry
 
+## New Feature Changelog
+
+- Modify LiDAR-IMU rotation extrinsic in point cloud undistortion 
+
+- Modify the rotation threshold of add direct visual update
+
+- Modify the LiDAR feature selection
+
+- Support velodyne LiDAR
+
+- Support LIO mode visualization in RViz
+
+- Support RGB pcd file output
+
 ## 1. Introduction
 
 **FAST-LIVO** is a fast LiDAR-Inertial-Visual odometry system, which builds on two tightly-coupled and direct odometry subsystems: a VIO subsystem and a LIO subsystem. The LIO subsystem registers raw points (instead of feature points on e.g., edges or planes) of a new scan to an incrementally-built point cloud map. The map points are additionally attached with image patches, which are then used in the VIO subsystem to align a new image by minimizing the direct photometric errors without extracting any visual features (e.g., ORB or FAST corner features).

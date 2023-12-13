@@ -1,6 +1,4 @@
-# FAST-LIVO
-
-## Fast and Tightly-coupled Sparse-Direct LiDAR-Inertial-Visual Odometry
+# FAST-LIVO: Fast and Tightly-coupled Sparse-Direct LiDAR-Inertial-Visual Odometry
 
 ## New Feature Changelog
 
@@ -15,6 +13,27 @@
 - Support LIO mode visualization in RViz
 
 - Support RGB pcd file output
+
+![](./img/lio_viz.png)
+
+![](./img/rgb_pcd.png)
+
+## Support datasets
+
+- Fast-livo dataset (https://connecthkuhk-my.sharepoint.com/personal/zhengcr_connect_hku_hk/_layouts/15/onedrive.aspx?id=%2Fpersonal%2Fzhengcr%5Fconnect%5Fhku%5Fhk%2FDocuments%2FFAST%2DLIVO%2DDatasets&ga=1)
+
+- NTU-VIRAL dataset (https://ntu-aris.github.io/ntu_viral_dataset/)
+
+- Newer College dataset (https://ori-drs.github.io/newer-college-dataset/)
+
+- S3E dataset (https://dl.amovlab.com:30443/s3e/)
+
+- HKU MARS dataset (https://mars.hku.hk/dataset.html)
+
+## TODO
+
+- [ ] Support GNSS fusion
+
 
 ## 1. Introduction
 

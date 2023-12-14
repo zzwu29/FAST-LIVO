@@ -122,7 +122,7 @@ source ~/catkin_ws/devel/setup.bash
 
 ## 4. Run the package
 
-Please note that our system can only work in the hard synchronized LiDAR-Inertial-Visual dataset at present due to the unestimated time offset between the camera and IMU. The frame headers of the camera and the LiDAR are at the same phisical trigger time.
+Please note that our system can only work in the hard synchronized LiDAR-Inertial-Visual dataset at present due to the unestimated time offset between the camera and IMU. The frame headers of the camera and the LiDAR are at the same physical trigger time.
 
 ### 4.1 Important parameters
 
@@ -133,8 +133,8 @@ Edit `config/xxx.yaml` to set the below parameters:
 - `img_topic`: The topic name of camera data.
 - `img_enable`: Enbale vio submodule.
 - `lidar_enable`: Enbale lio submodule.
-- `point_filter_num`: The sampling interval for a new scan. It is recommended that `3~4` for faster odometry, `1~2` for denser map.
-- `outlier_threshold`: The outlier threshold value of photometric error (square) of a single pixel. It is recommended that `50~250` for the darker scenes, `500~1000` for the brighter scenes. The smaller the value is, the faster the vio submodule is, but the weaker the anti-degradation ability is.
+- `point_filter_num`: The sampling interval for a new scan. It is recommended that `3~4` for faster odometry, and `1~2` for denser map.
+- `outlier_threshold`: The outlier threshold value of photometric error (square) of a single pixel. It is recommended that `50~250` for the darker scenes, and `500~1000` for the brighter scenes. The smaller the value is, the faster the vio submodule is, but the weaker the anti-degradation ability is.
 - `img_point_cov`: The covariance of photometric errors per pixel. 
 - `laser_point_cov`: The covariance of point-to-plane redisual per point. 
 - `filter_size_surf`: Downsample the points in a new scan. It is recommended that `0.05~0.15` for indoor scenes, `0.3~0.5` for outdoor scenes.
@@ -160,13 +160,15 @@ rosbag play YOUR_DOWNLOADED.bag
 
 ## 5. Our hard sychronized equipment
 
-In order to make it easier for our users to reproduce our work and benefit the robotics community, we also release a simple version of our handheld device, where you can access the CAD source files in [our_sensor_suite](https://github.com/xuankuzcr/our_sensor_suit). The drivers of various components in our hardware system are available in [Handheld_ws](https://github.com/xuankuzcr/Handheld_ws).
+**[Update]** To support the robotics community and enhance the reproducibility of our work, we provide CAD files for our handheld device, available in ".SLDPRT" and ".SLDASM" formats. These files can be opened and edited using Solidworks. Each module is designed for compatibility with FDM (Fused Deposition Modeling) technology, ensuring ease of 3D printing. Additionally, we open-source our **hardware synchronization scheme**, the **STM32 source code**, detailed **hardware wiring configuration instructions**, and **sensor ros driver**. Access these resources at our repository: [**LIV_handhold**](https://github.com/sheng00125/LIV_handhold).
+
+![principle](./img/cover.jpg)
 
 ## 6. Acknowledgments
 
 Thanks for [FAST-LIO2](https://github.com/hku-mars/FAST_LIO) and [SVO2.0](https://github.com/uzh-rpg/rpg_svo_pro_open). Thanks for [Livox_Technology](https://www.livoxtech.com/) for equipment support.
 
-Thanks [Jiarong Lin](https://github.com/ziv-lin) for the helps in the experiments.
+Thanks [Jiarong Lin](https://github.com/ziv-lin) for the help in the experiments.
 
 ## 7. License
 

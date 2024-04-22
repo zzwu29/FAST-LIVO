@@ -555,7 +555,8 @@ bool sync_packages(LidarMeasureGroup &meas)
     }
 
     if (img_buffer.empty()) { // no img topic, means only has lidar topic
-        if (last_timestamp_imu < lidar_end_time+0.02) { // imu message needs to be larger than lidar_end_time, keep complete propagate.
+        // if (last_timestamp_imu < lidar_end_time+0.02) { // imu message needs to be larger than lidar_end_time, keep complete propagate.
+        if (last_timestamp_imu < lidar_end_time) { // imu message needs to be larger than lidar_end_time, keep complete propagate.
             // ROS_ERROR("out sync");
             return false;
         }
@@ -710,6 +711,8 @@ void map_incremental()
 
 // PointCloudXYZRGB::Ptr pcl_wait_pub_RGB(new PointCloudXYZRGB(500000, 1));
 PointCloudXYZI::Ptr pcl_wait_pub(new PointCloudXYZI());
+PointCloudXYZI::Ptr pcl_wait_save(new PointCloudXYZI());
+
 PointCloudXYZRGB points_RGB;
 void publish_frame_world_rgb(const ros::Publisher & pubLaserCloudFullRes, lidar_selection::LidarSelectorPtr lidar_selector)
 {
@@ -1882,6 +1885,7 @@ int main(int argc, char** argv)
                                 &laserCloudWorld->points[i]);
         }
         *pcl_wait_pub = *laserCloudWorld;
+        *pcl_wait_save += *laserCloudWorld;
 
         publish_frame_world(pubLaserCloudFullRes);
 
@@ -1935,6 +1939,7 @@ int main(int argc, char** argv)
     }
     //--------------------------save map---------------
     string surf_filename(map_file_path + "/surf.pcd");
+    string surf_sparse_filename(map_file_path + "/surf_sparse.pcd");
     string corner_filename(map_file_path + "/corner.pcd");
     string all_points_filename(map_file_path + "/all_points.pcd");
     string rgb_pc_filename(map_file_path + "/rgb_pc.pcd");
@@ -1944,11 +1949,20 @@ int main(int argc, char** argv)
     fout_out.close();
     fout_pre.close();
     //if (surf_points.size() > 0 || corner_points.size() > 0) 
+
+    // sparse map
     if (surf_points.size() > 0)
     {
     pcl::PCDWriter pcd_writer;
     cout << "saving pointcloud, point number : "<<surf_points.size()<<" ...\n";
-    pcd_writer.writeBinary(surf_filename, surf_points);
+    pcd_writer.writeBinary(surf_sparse_filename, surf_points);
+    //pcd_writer.writeBinary(corner_filename, corner_points);
+    }
+    if (pcl_wait_save->size() > 0)
+    {
+    pcl::PCDWriter pcd_writer;
+    cout << "saving pointcloud, point number : "<<pcl_wait_save->size()<<" ...\n";
+    pcd_writer.writeBinary(surf_filename, *pcl_wait_save);
     //pcd_writer.writeBinary(corner_filename, corner_points);
     }
     if(points_RGB.size()>0)

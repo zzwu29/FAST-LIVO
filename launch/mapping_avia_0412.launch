@@ -1,0 +1,43 @@
+<launch>
+
+	<arg name="rviz" default="true" />
+    <arg name="bag_start"   default="10" />
+    <!-- <arg name="bag_start"   default="30" /> -->
+    <!-- <arg name="bag_start"   default="54" /> -->
+    <arg name="bag_durr"    default="270" /> 
+    <arg name="dataset"     default="VIL_0412" /> 
+
+	
+    <arg name="bag_rate"    default="1" />
+    <arg name="dobag"       default="true" /> <!-- if we should play back the bag -->
+    <arg name="bag"         default="/home/zzwu/Desktop/dataset/great/$(arg dataset).bag" />
+    
+    <arg name="img_enable"  default="0" />
+    <arg name="dense_map_enable"  default="1" />
+
+	<param name="img_enable" type="int" value="$(arg img_enable)"/>
+    <param name="dense_map_enable" type="int" value="$(arg dense_map_enable)"/>
+
+	<rosparam command="load" file="$(find fast_livo)/config/0412.yaml" />
+
+	<node pkg="fast_livo" type="fastlivo_mapping" name="laserMapping" output="screen" >
+		<rosparam file="$(find fast_livo)/config/camera_0412.yaml" />
+	</node>
+	
+    <group if="$(arg dobag)">
+        <node pkg="rosbag" type="play" name="rosbag" args="-d 5 -r $(arg bag_rate) -s $(arg bag_start) -u $(arg bag_durr) $(arg bag)" required="true"/>
+    </group>
+
+
+	<group if="$(arg rviz)">
+		<group if="$(arg img_enable)">
+            <node launch-prefix="nice" pkg="rviz" type="rviz" name="rviz" args="-d $(find fast_livo)/rviz_cfg/loam_livox.rviz" />
+        </group>
+        <group unless="$(arg img_enable)">
+            <node launch-prefix="nice" pkg="rviz" type="rviz" name="rviz" args="-d $(find fast_livo)/rviz_cfg/loam_livox_lio.rviz" />
+        </group>
+	</group>
+	<node pkg="image_transport" type="republish" name="republish1" args="raw in:=/cam0/image_raw raw out:=/rgb_img" output="screen" respawn="true"/>
+
+launch-prefix="gdb -ex run --args"
+</launch> 	

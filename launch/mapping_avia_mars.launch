@@ -1,18 +1,19 @@
 <launch>
 
-	<arg name="rviz" default="false" />
+	<arg name="rviz" default="true" />
 
 	<!-- <arg name="bag_start"   default="200" />
     <arg name="bag_durr"    default="470" />  -->
     <!-- <arg name="dataset"     default="HKisland01" />  -->
 
-	<arg name="bag_start"   default="160" />
-    <arg name="bag_durr"    default="610" /> 
+	<arg name="bag_start"   default="137" />
+	<!-- <arg name="bag_start"   default="134" /> -->
+    <arg name="bag_durr"    default="503" /> 
     <arg name="dataset"     default="HKisland_GNSS01" /> 
 
 	
     <arg name="bag_rate"    default="1" />
-    <arg name="dobag"       default="true" /> <!-- if we should play back the bag -->
+    <arg name="dobag"       default="false" /> <!-- if we should play back the bag -->
     <arg name="bag"         default="/home/zzwu/Desktop/dataset/HKU_MARS/$(arg dataset).bag" />
     
     <arg name="img_enable"  default="1" />
@@ -28,7 +29,7 @@
 
 	<!-- play the dataset -->
     <group if="$(arg dobag)">
-        <node pkg="rosbag" type="play" name="rosbag" args="-d 1 -r $(arg bag_rate) -s $(arg bag_start) -u $(arg bag_durr) $(arg bag)" required="true"/>
+        <node pkg="rosbag" type="play" name="rosbag" args="-d 5 -r $(arg bag_rate) -s $(arg bag_start) -u $(arg bag_durr) $(arg bag)" required="true"/>
     </group>
 
 	

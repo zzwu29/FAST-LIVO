@@ -702,6 +702,14 @@ void ImuProcess::UndistortPcl(LidarMeasureGroup &lidar_meas, StatesGroup &state_
   {
     auto &&head = *(it_imu);
     auto &&tail = *(it_imu + 1);
+
+    // cout<<" ===== "<<head->header.stamp.toSec()<<"    "
+    //   <<head->angular_velocity.x<<"    "
+    //   <<head->angular_velocity.y<<"    "
+    //   <<head->angular_velocity.z<<"    "
+    //   <<head->linear_acceleration.x<<"    "
+    //   <<head->linear_acceleration.y<<"    "
+    //   <<head->linear_acceleration.z<<" ===== "<<endl;
     
     if (tail->header.stamp.toSec() < last_lidar_end_time_)    continue;
     
@@ -801,13 +809,13 @@ void ImuProcess::UndistortPcl(LidarMeasureGroup &lidar_meas, StatesGroup &state_
   // cout<<"[ IMU Process ]: vel "<<state_inout.vel_end.transpose()<<" pos "<<state_inout.pos_end.transpose()<<" ba"<<state_inout.bias_a.transpose()<<" bg "<<state_inout.bias_g.transpose()<<endl;
   // cout<<"propagated cov: "<<state_inout.cov.diagonal().transpose()<<endl;
 
-  //   cout<<"UndistortPcl Time:";
-  //   for (auto it = IMUpose.begin(); it != IMUpose.end(); ++it) {
-  //     cout<<it->offset_time<<" ";
-  //   }
-  //   cout<<endl<<"UndistortPcl size:"<<IMUpose.size()<<endl;
-  //   cout<<"Undistorted pcl_out.size: "<<pcl_out.size()
-  //          <<"lidar_meas.size: "<<lidar_meas.lidar->points.size()<<endl;
+    // cout<<"UndistortPcl Time:";
+    // for (auto it = IMUpose.begin(); it != IMUpose.end(); ++it) {
+    //   cout<<it->offset_time<<" ";
+    // }
+    // cout<<endl<<"UndistortPcl size:"<<IMUpose.size()<<endl;
+    // cout<<"Undistorted pcl_out.size: "<<pcl_out.size()
+    //        <<"lidar_meas.size: "<<lidar_meas.lidar->points.size()<<endl;
 
   if (pcl_out.points.size()<1) 
   {
@@ -829,7 +837,7 @@ void ImuProcess::UndistortPcl(LidarMeasureGroup &lidar_meas, StatesGroup &state_
     for(; it_pcl->curvature / double(1000) > head->offset_time; it_pcl --)
     {
       dt = it_pcl->curvature / double(1000) - head->offset_time;
-
+      
       /* Transform to the 'end' frame, using only the rotation
        * Note: Compensation direction is INVERSE of Frame's moving direction
        * So if we want to compensate a point at timestamp-i to the frame-e
